@@ -88,12 +88,12 @@ const AlertsPage = () => {
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case 'sent': return <CheckCircle className=\"h-4 w-4\" />;
-      case 'sending': return <Send className=\"h-4 w-4\" />;
-      case 'draft': return <AlertCircle className=\"h-4 w-4\" />;
-      case 'scheduled': return <Clock className=\"h-4 w-4\" />;
-      case 'failed': return <XCircle className=\"h-4 w-4\" />;
-      default: return <Bell className=\"h-4 w-4\" />;
+      case 'sent': return <CheckCircle className="h-4 w-4" />;
+      case 'sending': return <Send className="h-4 w-4" />;
+      case 'draft': return <AlertCircle className="h-4 w-4" />;
+      case 'scheduled': return <Clock className="h-4 w-4" />;
+      case 'failed': return <XCircle className="h-4 w-4" />;
+      default: return <Bell className="h-4 w-4" />;
     }
   };
 
