@@ -121,7 +121,7 @@ class AlertCreate(BaseModel):
     scheduled_at: Optional[datetime] = None
 
 class Alert(AlertCreate):
-    _id: str = Field(alias="id")
+    id: str
     status: AlertStatus
     created_at: datetime
     sent_at: Optional[datetime] = None
