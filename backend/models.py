@@ -53,7 +53,7 @@ class IncidentCreate(BaseModel):
     image: Optional[str] = None
 
 class Incident(IncidentCreate):
-    _id: str = Field(alias="id")
+    id: str
     content_id: str
     processed_at: datetime
     
