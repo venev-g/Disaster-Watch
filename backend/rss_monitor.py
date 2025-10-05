@@ -276,11 +276,11 @@ class RSSMonitor:
             
             # Update incident with alert info
             await self.db.incidents.update_one(
-                {"_id": incident_data['_id']},
+                {"id": incident_data['id']},
                 {
                     "$set": {
                         "alert_generated": True,
-                        "alert_id": alert_data['_id']
+                        "alert_id": alert_data['id']
                     }
                 }
             )
