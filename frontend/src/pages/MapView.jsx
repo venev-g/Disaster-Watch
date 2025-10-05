@@ -111,88 +111,139 @@ const MapView = () => {
         {/* Map Mode Toggle */}
         <div className="absolute top-4 left-4 z-10">
           <div className="bg-background/80 backdrop-blur-sm rounded-lg p-1 flex space-x-1">
-            {['satellite', 'street', 'terrain'].map((mode) => (
+            {mapStyles.map((style) => (
               <Button
-                key={mode}
+                key={style.value}
                 size="sm"
-                variant={mapMode === mode ? 'default' : 'ghost'}
-                onClick={() => setMapMode(mode)}
-                className="text-xs capitalize"
-                data-testid={`map-mode-${mode}`}
+                variant={mapStyle === style.value ? 'default' : 'ghost'}
+                onClick={() => setMapStyle(style.value)}
+                className="text-xs"
+                data-testid={`map-mode-${style.label.toLowerCase()}`}
               >
-                {mode}
+                {style.label}
               </Button>
             ))}
           </div>
         </div>
 
-        {/* Full Screen Map */}
-        <div className="h-[70vh] bg-gradient-to-br from-green-100 via-blue-50 to-blue-100 dark:from-gray-800 dark:via-gray-700 dark:to-gray-600 relative">
-          {/* Map Background Pattern */}
-          <div className="absolute inset-0 opacity-10">
-            <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <pattern id="mapGrid" width="40" height="40" patternUnits="userSpaceOnUse">
-                  <path d="M 40 0 L 0 0 0 40" fill="none" stroke="currentColor" strokeWidth="1"/>
-                </pattern>
-              </defs>
-              <rect width="100%" height="100%" fill="url(#mapGrid)" />
-            </svg>
-          </div>
-
-          {/* Mock Geographic Features */}
-          <div className="absolute inset-0">
-            {/* Major Roads */}
-            <div className="absolute top-1/3 left-0 w-full h-1 bg-gray-600 opacity-50"></div>
-            <div className="absolute top-2/3 left-0 w-full h-1 bg-gray-600 opacity-50"></div>
-            <div className="absolute left-1/4 top-0 h-full w-1 bg-gray-600 opacity-50"></div>
-            <div className="absolute left-3/4 top-0 h-full w-1 bg-gray-600 opacity-50"></div>
-            
-            {/* Water Bodies */}
-            <div className="absolute bottom-10 right-20 w-32 h-20 bg-blue-400 rounded-full opacity-40"></div>
-            <div className="absolute top-20 left-32 w-24 h-16 bg-blue-400 rounded-full opacity-40"></div>
-            
-            {/* Parks */}
-            <div className="absolute top-1/2 left-1/2 w-20 h-20 bg-green-400 rounded-lg opacity-30 transform -translate-x-1/2 -translate-y-1/2"></div>
-          </div>
-
-          {/* Incident Clusters */}
-          {[
-            { id: 1, x: '20%', y: '30%', count: 5, severity: 'critical' },
-            { id: 2, x: '60%', y: '50%', count: 3, severity: 'severe' },
-            { id: 3, x: '40%', y: '70%', count: 8, severity: 'moderate' },
-            { id: 4, x: '80%', y: '25%', count: 2, severity: 'severe' },
-            { id: 5, x: '15%', y: '75%', count: 12, severity: 'critical' },
-          ].map((cluster) => (
-            <div
-              key={cluster.id}
-              className="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer group"
-              style={{ left: cluster.x, top: cluster.y }}
-              data-testid={`cluster-${cluster.id}`}
+        {/* Full Screen Real Map */}
+        <div className="h-[70vh] relative">
+          {MAPBOX_TOKEN ? (
+            <Map
+              {...viewState}
+              onMove={evt => setViewState(evt.viewState)}
+              style={{ width: '100%', height: '100%' }}
+              mapStyle={mapStyle}
+              mapboxAccessToken={MAPBOX_TOKEN}
             >
-              <div className={`
-                w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm
-                ${cluster.severity === 'critical' ? 'bg-red-500' :
-                  cluster.severity === 'severe' ? 'bg-orange-500' : 'bg-yellow-500'}
-                shadow-lg border-2 border-white animate-pulse
-              `}>
-                {cluster.count}
-              </div>
-              <div className={`
-                absolute top-1/2 left-1/2 w-16 h-16 rounded-full transform -translate-x-1/2 -translate-y-1/2
-                ${cluster.severity === 'critical' ? 'bg-red-500' :
-                  cluster.severity === 'severe' ? 'bg-orange-500' : 'bg-yellow-500'}
-                opacity-30 animate-ping
-              `}></div>
-              
-              {/* Cluster Tooltip */}
-              <div className="absolute -bottom-16 left-1/2 transform -translate-x-1/2 bg-black/90 text-white text-xs px-3 py-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20">
-                <div className="font-semibold">{cluster.count} incidents</div>
-                <div className="capitalize">{cluster.severity} severity</div>
-                <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 border-l-4 border-r-4 border-b-4 border-transparent border-b-black/90"></div>
+              {/* Incident Markers */}
+              {validIncidents.map((incident) => {
+                const location = incident.locations[0];
+                return (
+                  <Marker
+                    key={incident.id}
+                    longitude={location.longitude}
+                    latitude={location.latitude}
+                    anchor="bottom"
+                  >
+                    <div
+                      className="cursor-pointer transform hover:scale-125 transition-transform"
+                      onClick={() => setSelectedIncident(incident)}
+                      data-testid={`map-marker-${incident.id}`}
+                    >
+                      {/* Main Marker */}
+                      <div 
+                        className="w-8 h-8 rounded-full border-3 border-white shadow-xl flex items-center justify-center relative"
+                        style={{ backgroundColor: getSeverityColor(incident.severity) }}
+                      >
+                        <div className="w-3 h-3 bg-white rounded-full"></div>
+                        
+                        {/* Urgency Ring */}
+                        <div 
+                          className="absolute inset-0 rounded-full border-2"
+                          style={{ 
+                            borderColor: getSeverityColor(incident.severity),
+                            animation: incident.urgency_score >= 8 ? 'ping 1s cubic-bezier(0, 0, 0.2, 1) infinite' : 'none'
+                          }}
+                        ></div>
+                      </div>
+                      
+                      {/* Pulse for high urgency */}
+                      {incident.urgency_score >= 7 && (
+                        <div 
+                          className="absolute top-1/2 left-1/2 w-16 h-16 rounded-full transform -translate-x-1/2 -translate-y-1/2 opacity-30 animate-ping"
+                          style={{ backgroundColor: getSeverityColor(incident.severity) }}
+                        ></div>
+                      )}
+                    </div>
+                  </Marker>
+                );
+              })}
+
+              {/* Incident Popup */}
+              {selectedIncident && (
+                <Popup
+                  longitude={selectedIncident.locations[0].longitude}
+                  latitude={selectedIncident.locations[0].latitude}
+                  anchor="top"
+                  onClose={() => setSelectedIncident(null)}
+                  closeOnClick={false}
+                  className="max-w-sm"
+                >
+                  <div className="p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Badge variant={
+                        selectedIncident.severity === 'critical' ? 'destructive' : 
+                        selectedIncident.severity === 'severe' ? 'default' : 'secondary'
+                      }>
+                        {selectedIncident.severity.toUpperCase()}
+                      </Badge>
+                      <div className="text-xs text-gray-500">
+                        <span className="capitalize">{selectedIncident.incident_type}</span> • 
+                        <span className="ml-1">Urgency: {selectedIncident.urgency_score}/10</span>
+                      </div>
+                    </div>
+                    
+                    <h3 className="font-bold text-base">
+                      {selectedIncident.locations[0].name}
+                    </h3>
+                    
+                    <p className="text-sm text-gray-700 leading-relaxed">
+                      {selectedIncident.content}
+                    </p>
+                    
+                    <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t">
+                      <span className="font-medium">{selectedIncident.source}</span>
+                      <span>{new Date(selectedIncident.published_at).toLocaleDateString()}</span>
+                    </div>
+
+                    {selectedIncident.sentiment && (
+                      <div className="text-xs">
+                        <span className="text-gray-500">Distress Level: </span>
+                        <span className={`font-medium ${
+                          selectedIncident.sentiment.distress_level === 'critical' ? 'text-red-600' :
+                          selectedIncident.sentiment.distress_level === 'high' ? 'text-orange-600' :
+                          selectedIncident.sentiment.distress_level === 'medium' ? 'text-yellow-600' :
+                          'text-green-600'
+                        }`}>
+                          {selectedIncident.sentiment.distress_level}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </Popup>
+              )}
+            </Map>
+          ) : (
+            <div className="h-full flex items-center justify-center bg-gray-100 text-gray-500">
+              <div className="text-center">
+                <MapPin className="h-16 w-16 mx-auto mb-4 opacity-50" />
+                <h3 className="text-lg font-medium mb-2">Map Unavailable</h3>
+                <p className="text-sm">Mapbox access token required</p>
+                <p className="text-xs mt-1">Please configure REACT_APP_MAPBOX_TOKEN</p>
               </div>
             </div>
-          ))}
+          )}
         </div>
 
         {/* Map Footer */}
