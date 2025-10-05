@@ -83,7 +83,7 @@ class Incident(IncidentCreate):
     gemini_model: Optional[str] = None
 
 class IncidentResponse(BaseModel):
-    id: str = Field(alias="_id")
+    id: str
     content: str
     source: str
     published_at: datetime
@@ -129,7 +129,7 @@ class Alert(AlertCreate):
     engagement_rate: Optional[float] = None
 
 class AlertResponse(BaseModel):
-    id: str = Field(alias="_id")
+    id: str
     title: str
     message: str
     severity: str
