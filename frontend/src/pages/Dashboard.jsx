@@ -47,29 +47,16 @@ const Dashboard = () => {
         console.error('Error fetching data:', err);
         setError(err.message);
         
-        // Fallback to mock data if backend fails
-        const mockIncidents = [
-          {
-            id: '1',
-            content: 'Major flooding reported in downtown Brooklyn. Water levels rising rapidly, several streets impassable. Emergency crews dispatched to assist evacuations.',
-            published_at: '2024-12-19T10:30:00Z',
-            urgency_score: 9,
-            severity: 'critical',
-            incident_type: 'flood',
-            locations: [{
-              name: 'Downtown Brooklyn',
-              latitude: 40.6892,
-              longitude: -73.9442
-            }],
-            distress_level: 'high',
-            source: 'NYC Emergency Management',
-            image: 'https://images.unsplash.com/photo-1600336153113-d66c79de3e91',
-            likes: 12,
-            shares: 8,
-            comments: 5
-          }
-        ];
-        setIncidents(mockIncidents);
+        // Set empty arrays if backend fails - no mock data
+        setIncidents([]);
+        setAnalytics({
+          total_incidents: 0,
+          critical_incidents: 0,
+          active_alerts: 0,
+          avg_urgency_score: 0,
+          incidents_today: 0,
+          resolution_rate: 0
+        });
       } finally {
         setLoading(false);
       }
