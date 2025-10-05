@@ -6,10 +6,8 @@ import {
   TrendingUp, 
   TrendingDown, 
   BarChart3, 
-  PieChart, 
   Calendar, 
-  Download,
-  Filter
+  Download
 } from 'lucide-react';
 import axios from 'axios';
 
@@ -19,30 +17,26 @@ const API = `${BACKEND_URL}/api`;
 const Analytics = () => {
   const [analytics, setAnalytics] = useState(null);
   const [locations, setLocations] = useState([]);
+  const [incidentTrends, setIncidentTrends] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchAnalytics = async () => {
       try {
-        const [analyticsRes, locationsRes] = await Promise.all([
+        const [analyticsRes, locationsRes, trendsRes] = await Promise.all([
           axios.get(`${API}/analytics/summary`),
-          axios.get(`${API}/analytics/locations`)
+          axios.get(`${API}/analytics/locations`),
+          axios.get(`${API}/analytics/trends`).catch(() => ({ data: [] }))
         ]);
         
         setAnalytics(analyticsRes.data);
         setLocations(locationsRes.data);
+        setIncidentTrends(trendsRes.data);
       } catch (err) {
         console.error('Analytics fetch error:', err);
-        // Use fallback data
-        setAnalytics({
-          total_incidents: 1247,
-          critical_incidents: 28,
-          active_alerts: 8,
-          avg_urgency_score: 6.2,
-          incidents_today: 45,
-          resolution_rate: 94.5
-        });
+        setAnalytics(null);
         setLocations([]);
+        setIncidentTrends([]);
       } finally {
         setLoading(false);
       }
@@ -51,36 +45,12 @@ const Analytics = () => {
     fetchAnalytics();
   }, []);
 
-  // Mock chart data
-  const incidentTrends = [
-    { month: 'Jan', incidents: 45, resolved: 42 },
-    { month: 'Feb', incidents: 52, resolved: 48 },
-    { month: 'Mar', incidents: 38, resolved: 35 },
-    { month: 'Apr', incidents: 67, resolved: 61 },
-    { month: 'May', incidents: 71, resolved: 68 },
-    { month: 'Jun', incidents: 58, resolved: 55 },
-  ];
-
-  // Use real location data or fallback
-  const topLocations = locations.length > 0 ? locations.map(loc => ({
+  // Use real location data
+  const topLocations = locations.map(loc => ({
     city: loc.location_name,
     incidents: loc.incident_count,
-    change: '+' + Math.floor(Math.random() * 20) + '%' // Mock change for now
-  })) : [
-    { city: 'New York', incidents: 142, change: '+12%' },
-    { city: 'Los Angeles', incidents: 98, change: '+8%' },
-    { city: 'Chicago', incidents: 76, change: '-3%' },
-    { city: 'Miami', incidents: 64, change: '+15%' },
-    { city: 'San Francisco', incidents: 51, change: '+5%' },
-  ];
-
-  const incidentTypes = [
-    { type: 'Floods', count: 156, percentage: 35, color: 'bg-blue-500' },
-    { type: 'Fires', count: 89, percentage: 20, color: 'bg-red-500' },
-    { type: 'Earthquakes', count: 67, percentage: 15, color: 'bg-orange-500' },
-    { type: 'Storms', count: 78, percentage: 18, color: 'bg-purple-500' },
-    { type: 'Other', count: 54, percentage: 12, color: 'bg-gray-500' },
-  ];
+    change: loc.change_percentage || 'N/A'
+  }));
 
   return (
     <div className="container mx-auto px-4 py-6 space-y-6">
@@ -117,10 +87,12 @@ const Analytics = () => {
               </div>
               <TrendingUp className="h-8 w-8 text-green-500" />
             </div>
-            <div className="flex items-center text-sm text-green-500 mt-2">
-              <TrendingUp className="h-3 w-3 mr-1" />
-              +8.2% from last month
-            </div>
+            {analytics?.trend_total && (
+              <div className={`flex items-center text-sm mt-2 ${analytics.trend_total >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                {analytics.trend_total >= 0 ? <TrendingUp className="h-3 w-3 mr-1" /> : <TrendingDown className="h-3 w-3 mr-1" />}
+                {analytics.trend_total >= 0 ? '+' : ''}{analytics.trend_total}% from last month
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -135,10 +107,12 @@ const Analytics = () => {
               </div>
               <TrendingDown className="h-8 w-8 text-green-500" />
             </div>
-            <div className="flex items-center text-sm text-green-500 mt-2">
-              <TrendingDown className="h-3 w-3 mr-1" />
-              -15% improvement
-            </div>
+            {analytics?.trend_urgency && (
+              <div className={`flex items-center text-sm mt-2 ${analytics.trend_urgency <= 0 ? 'text-green-500' : 'text-orange-500'}`}>
+                {analytics.trend_urgency <= 0 ? <TrendingDown className="h-3 w-3 mr-1" /> : <TrendingUp className="h-3 w-3 mr-1" />}
+                {analytics.trend_urgency >= 0 ? '+' : ''}{analytics.trend_urgency}% {analytics.trend_urgency <= 0 ? 'improvement' : 'increase'}
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -153,10 +127,12 @@ const Analytics = () => {
               </div>
               <TrendingUp className="h-8 w-8 text-green-500" />
             </div>
-            <div className="flex items-center text-sm text-green-500 mt-2">
-              <TrendingUp className="h-3 w-3 mr-1" />
-              +2.1% this month
-            </div>
+            {analytics?.trend_resolution && (
+              <div className={`flex items-center text-sm mt-2 ${analytics.trend_resolution >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                {analytics.trend_resolution >= 0 ? <TrendingUp className="h-3 w-3 mr-1" /> : <TrendingDown className="h-3 w-3 mr-1" />}
+                {analytics.trend_resolution >= 0 ? '+' : ''}{analytics.trend_resolution}% this month
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -171,10 +147,12 @@ const Analytics = () => {
               </div>
               <TrendingUp className="h-8 w-8 text-orange-500" />
             </div>
-            <div className="flex items-center text-sm text-orange-500 mt-2">
-              <TrendingUp className="h-3 w-3 mr-1" />
-              +12 since yesterday
-            </div>
+            {analytics?.trend_alerts && (
+              <div className={`flex items-center text-sm mt-2 ${analytics.trend_alerts >= 0 ? 'text-orange-500' : 'text-green-500'}`}>
+                {analytics.trend_alerts >= 0 ? <TrendingUp className="h-3 w-3 mr-1" /> : <TrendingDown className="h-3 w-3 mr-1" />}
+                {analytics.trend_alerts >= 0 ? '+' : ''}{analytics.trend_alerts} since yesterday
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -191,24 +169,36 @@ const Analytics = () => {
           </CardHeader>
           <CardContent>
             <div className="h-64 relative">
-              {/* Mock Line Chart */}
-              <div className="absolute inset-0 flex items-end space-x-4 px-4">
-                {incidentTrends.map((data, index) => (
-                  <div key={data.month} className="flex-1 flex flex-col items-center space-y-2">
-                    <div className="w-full flex flex-col space-y-1">
-                      <div 
-                        className="bg-blue-500 rounded-t" 
-                        style={{ height: `${(data.incidents / 80) * 200}px` }}
-                      ></div>
-                      <div 
-                        className="bg-green-500 rounded-t" 
-                        style={{ height: `${(data.resolved / 80) * 200}px` }}
-                      ></div>
-                    </div>
-                    <span className="text-xs text-muted-foreground">{data.month}</span>
-                  </div>
-                ))}
-              </div>
+              {incidentTrends.length > 0 ? (
+                <div className="absolute inset-0 flex items-end space-x-4 px-4">
+                  {incidentTrends.map((data, index) => {
+                    const maxValue = Math.max(...incidentTrends.map(d => d.incidents || 0));
+                    return (
+                      <div key={data.period || index} className="flex-1 flex flex-col items-center space-y-2">
+                        <div className="w-full flex flex-col space-y-1">
+                          <div 
+                            className="bg-blue-500 rounded-t" 
+                            style={{ height: `${maxValue > 0 ? ((data.incidents || 0) / maxValue) * 200 : 0}px` }}
+                            title={`${data.incidents || 0} incidents`}
+                          ></div>
+                          {data.resolved !== undefined && (
+                            <div 
+                              className="bg-green-500 rounded-t" 
+                              style={{ height: `${maxValue > 0 ? ((data.resolved || 0) / maxValue) * 200 : 0}px` }}
+                              title={`${data.resolved || 0} resolved`}
+                            ></div>
+                          )}
+                        </div>
+                        <span className="text-xs text-muted-foreground">{data.period}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
+                  {loading ? 'Loading trend data...' : 'No trend data available'}
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -220,22 +210,30 @@ const Analytics = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {topLocations.map((location, index) => (
-                <div key={location.city} className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-sm font-bold text-primary">
-                      {index + 1}
+              {topLocations.length > 0 ? (
+                topLocations.map((location, index) => (
+                  <div key={location.city || index} className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-sm font-bold text-primary">
+                        {index + 1}
+                      </div>
+                      <div>
+                        <p className="font-medium">{location.city}</p>
+                        <p className="text-sm text-muted-foreground">{location.incidents} incidents</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-medium">{location.city}</p>
-                      <p className="text-sm text-muted-foreground">{location.incidents} incidents</p>
-                    </div>
+                    {location.change !== 'N/A' && (
+                      <Badge variant={location.change.toString().startsWith('+') ? 'default' : 'secondary'}>
+                        {location.change}
+                      </Badge>
+                    )}
                   </div>
-                  <Badge variant={location.change.startsWith('+') ? 'default' : 'secondary'}>
-                    {location.change}
-                  </Badge>
+                ))
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  {loading ? 'Loading location data...' : 'No location data available'}
                 </div>
-              ))}
+              )}
             </div>
           </CardContent>
         </Card>
