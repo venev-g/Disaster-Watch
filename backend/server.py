@@ -137,7 +137,7 @@ async def get_incidents(
 async def get_incident(incident_id: str):
     """Get specific incident by ID"""
     try:
-        incident = await db.incidents.find_one({"_id": incident_id})
+        incident = await db.incidents.find_one({"id": incident_id})
         if not incident:
             raise HTTPException(status_code=404, detail="Incident not found")
         
