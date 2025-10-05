@@ -67,7 +67,14 @@ const AlertsPage = () => {
       delivery_rate: 0,
       engagement_rate: 0
     }
-  ];
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAlerts();
+  }, []);
 
   const getSeverityColor = (severity) => {
     switch (severity) {
