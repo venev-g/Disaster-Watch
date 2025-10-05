@@ -123,10 +123,20 @@ const Dashboard = () => {
     <div className="container mx-auto px-4 py-6 space-y-6">
       {/* Header */}
       <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">Emergency Response Dashboard</h1>
-        <p className="text-muted-foreground">
-          Real-time monitoring of emergency incidents and disaster management
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Emergency Response Dashboard</h1>
+            <p className="text-muted-foreground">
+              Real-time monitoring of emergency incidents and disaster management
+            </p>
+          </div>
+          {error && (
+            <div className="flex items-center space-x-2 text-orange-600 bg-orange-50 dark:bg-orange-900/20 px-3 py-2 rounded-lg">
+              <AlertTriangle className="h-4 w-4" />
+              <span className="text-sm">Using offline data</span>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Stats Grid */}
