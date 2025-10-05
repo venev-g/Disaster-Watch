@@ -165,7 +165,9 @@ const Analytics = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Active Alerts</p>
-                <p className="text-2xl font-bold" data-testid="active-alerts">28</p>
+                <p className="text-2xl font-bold" data-testid="active-alerts">
+                  {loading ? '...' : (analytics?.active_alerts || '0')}
+                </p>
               </div>
               <TrendingUp className="h-8 w-8 text-orange-500" />
             </div>
