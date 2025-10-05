@@ -83,10 +83,11 @@ const Dashboard = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // Generate stats from real analytics data or fallback to mock
   const stats = [
     {
       title: 'Active Alerts',
-      value: '24',
+      value: analytics?.active_alerts?.toString() || '0',
       change: '+12%',
       trend: 'up',
       icon: AlertTriangle,
@@ -94,23 +95,23 @@ const Dashboard = () => {
     },
     {
       title: 'Critical Incidents',
-      value: '8',
+      value: analytics?.critical_incidents?.toString() || '0',
       change: '+3',
       trend: 'up',
       icon: TrendingUp,
       color: 'text-orange-500'
     },
     {
-      title: 'Resolved Today',
-      value: '156',
+      title: 'Total Incidents',
+      value: analytics?.total_incidents?.toString() || '0',
       change: '+23%',
       trend: 'up',
       icon: Clock,
       color: 'text-green-500'
     },
     {
-      title: 'People Helped',
-      value: '2.1K',
+      title: 'Avg Urgency',
+      value: analytics?.avg_urgency_score?.toString() || '0',
       change: '+18%',
       trend: 'up',
       icon: Users,
