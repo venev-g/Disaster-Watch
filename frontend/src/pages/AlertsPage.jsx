@@ -135,10 +135,26 @@ const AlertsPage = () => {
             Create, manage and track emergency alert communications
           </p>
         </div>
-        <Button data-testid="create-alert-btn">
-          <Plus className="h-4 w-4 mr-2" />
-          Create Alert
-        </Button>
+        <div className="flex space-x-2">
+          <Button 
+            variant="outline" 
+            onClick={async () => {
+              try {
+                await axios.post(`${API}/monitoring/process`);
+                alert('RSS processing triggered!');
+              } catch (err) {
+                alert('Failed to trigger processing');
+              }
+            }}
+            data-testid="process-rss-btn"
+          >
+            Process RSS
+          </Button>
+          <Button data-testid="create-alert-btn">
+            <Plus className="h-4 w-4 mr-2" />
+            Create Alert
+          </Button>
+        </div>
       </div>
 
       {/* Stats Overview */}
