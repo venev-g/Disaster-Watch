@@ -22,8 +22,18 @@ const API = `${BACKEND_URL}/api`;
 
 const AlertsPage = () => {
   const [selectedTab, setSelectedTab] = useState('active');
+  const [alerts, setAlerts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const alerts = [
+  useEffect(() => {
+    const fetchAlerts = async () => {
+      try {
+        const response = await axios.get(`${API}/alerts`);
+        setAlerts(response.data);
+      } catch (err) {
+        console.error('Error fetching alerts:', err);
+        // Fallback to mock data
+        setAlerts([
     {
       id: 1,
       title: 'Critical Flood Warning - Downtown Brooklyn',
