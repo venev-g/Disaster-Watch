@@ -23,93 +23,64 @@ const API = `${BACKEND_URL}/api`;
 
 const Dashboard = () => {
   const [incidents, setIncidents] = useState([]);
+  const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Mock data for demonstration
+  // Fetch real data from backend
   useEffect(() => {
-    const mockIncidents = [
-      {
-        id: '1',
-        content: 'Major flooding reported in downtown Brooklyn. Water levels rising rapidly, several streets impassable. Emergency crews dispatched to assist evacuations.',
-        published_at: '2024-12-19T10:30:00Z',
-        urgency_score: 9,
-        severity: 'critical',
-        incident_type: 'flood',
-        locations: [{
-          name: 'Downtown Brooklyn',
-          latitude: 40.6892,
-          longitude: -73.9442
-        }],
-        distress_level: 'high',
-        source: 'NYC Emergency Management',
-        image: 'https://images.unsplash.com/photo-1600336153113-d66c79de3e91',
-        likes: 12,
-        shares: 8,
-        comments: 5
-      },
-      {
-        id: '2',
-        content: 'Apartment building fire on 5th Avenue. Firefighters on scene, residents evacuated safely. Traffic diverted in surrounding blocks.',
-        published_at: '2024-12-19T09:15:00Z',
-        urgency_score: 8,
-        severity: 'severe',
-        incident_type: 'fire',
-        locations: [{
-          name: '5th Avenue Manhattan',
-          latitude: 40.7589,
-          longitude: -73.9851
-        }],
-        distress_level: 'high',
-        source: 'FDNY Updates',
-        image: 'https://images.unsplash.com/photo-1639369488374-561b5486177d',
-        likes: 28,
-        shares: 15,
-        comments: 12
-      },
-      {
-        id: '3',
-        content: 'Earthquake tremors felt across the Bay Area. Magnitude 4.2. No immediate damage reports. Residents advised to check for structural damage.',
-        published_at: '2024-12-19T08:45:00Z',
-        urgency_score: 6,
-        severity: 'moderate',
-        incident_type: 'earthquake',
-        locations: [{
-          name: 'Bay Area, CA',
-          latitude: 37.7749,
-          longitude: -122.4194
-        }],
-        distress_level: 'medium',
-        source: 'USGS Earthquake Alert',
-        image: 'https://images.unsplash.com/photo-1677233860259-ce1a8e0f8498',
-        likes: 45,
-        shares: 23,
-        comments: 18
-      },
-      {
-        id: '4',
-        content: 'Emergency responders conducting rescue operations after mudslide in Marin County. Several homes affected, residents relocated to temporary shelters.',
-        published_at: '2024-12-19T07:20:00Z',
-        urgency_score: 7,
-        severity: 'severe',
-        incident_type: 'landslide',
-        locations: [{
-          name: 'Marin County, CA',
-          latitude: 38.0834,
-          longitude: -122.7633
-        }],
-        distress_level: 'high',
-        source: 'Cal Fire Emergency',
-        image: 'https://images.unsplash.com/photo-1608723724234-558f4b72d8f5',
-        likes: 67,
-        shares: 34,
-        comments: 29
-      }
-    ];
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
 
-    setTimeout(() => {
-      setIncidents(mockIncidents);
-      setLoading(false);
-    }, 1000);
+        // Fetch incidents and analytics in parallel
+        const [incidentsRes, analyticsRes] = await Promise.all([
+          axios.get(`${API}/incidents?limit=10`),
+          axios.get(`${API}/analytics/summary`)
+        ]);
+
+        setIncidents(incidentsRes.data);
+        setAnalytics(analyticsRes.data);
+        
+      } catch (err) {
+        console.error('Error fetching data:', err);
+        setError(err.message);
+        
+        // Fallback to mock data if backend fails
+        const mockIncidents = [
+          {
+            id: '1',
+            content: 'Major flooding reported in downtown Brooklyn. Water levels rising rapidly, several streets impassable. Emergency crews dispatched to assist evacuations.',
+            published_at: '2024-12-19T10:30:00Z',
+            urgency_score: 9,
+            severity: 'critical',
+            incident_type: 'flood',
+            locations: [{
+              name: 'Downtown Brooklyn',
+              latitude: 40.6892,
+              longitude: -73.9442
+            }],
+            distress_level: 'high',
+            source: 'NYC Emergency Management',
+            image: 'https://images.unsplash.com/photo-1600336153113-d66c79de3e91',
+            likes: 12,
+            shares: 8,
+            comments: 5
+          }
+        ];
+        setIncidents(mockIncidents);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+    
+    // Set up polling for real-time updates every 30 seconds
+    const interval = setInterval(fetchData, 30000);
+    
+    return () => clearInterval(interval);
   }, []);
 
   const stats = [
