@@ -19,14 +19,16 @@ const Analytics = () => {
   const [locations, setLocations] = useState([]);
   const [incidentTrends, setIncidentTrends] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [dateRange, setDateRange] = useState(30); // Default to last 30 days
 
   useEffect(() => {
     const fetchAnalytics = async () => {
       try {
+        const params = { days: dateRange };
         const [analyticsRes, locationsRes, trendsRes] = await Promise.all([
-          axios.get(`${API}/analytics/summary`),
-          axios.get(`${API}/analytics/locations`),
-          axios.get(`${API}/analytics/trends`).catch(() => ({ data: [] }))
+          axios.get(`${API}/analytics/summary`, { params }),
+          axios.get(`${API}/analytics/locations`, { params }),
+          axios.get(`${API}/analytics/trends`, { params }).catch(() => ({ data: [] }))
         ]);
         
         setAnalytics(analyticsRes.data);
@@ -43,7 +45,7 @@ const Analytics = () => {
     };
 
     fetchAnalytics();
-  }, []);
+  }, [dateRange]);
 
   // Use real location data
   const topLocations = locations.map(loc => ({
@@ -51,6 +53,57 @@ const Analytics = () => {
     incidents: loc.incident_count,
     change: loc.change_percentage || 'N/A'
   }));
+
+  // Handle date filter changes
+  const handleDateFilter = () => {
+    // Cycle through common date ranges: 7, 30, 90, 365 days
+    const ranges = [7, 30, 90, 365];
+    const currentIndex = ranges.indexOf(dateRange);
+    const nextIndex = (currentIndex + 1) % ranges.length;
+    setDateRange(ranges[nextIndex]);
+  };
+
+  // Handle export functionality
+  const handleExport = () => {
+    try {
+      // Prepare data for export
+      const exportData = {
+        summary: analytics,
+        locations: topLocations,
+        trends: incidentTrends,
+        exportDate: new Date().toISOString(),
+        dateRange: `Last ${dateRange} days`
+      };
+
+      // Convert to JSON string with formatting
+      const jsonString = JSON.stringify(exportData, null, 2);
+      
+      // Create blob and download
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `disaster-watch-analytics-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      console.log('Analytics data exported successfully');
+    } catch (error) {
+      console.error('Export failed:', error);
+      alert('Failed to export data. Please try again.');
+    }
+  };
+
+  // Get date range label
+  const getDateRangeLabel = () => {
+    if (dateRange === 7) return 'Last 7 days';
+    if (dateRange === 30) return 'Last 30 days';
+    if (dateRange === 90) return 'Last 90 days';
+    if (dateRange === 365) return 'Last year';
+    return `Last ${dateRange} days`;
+  };
 
   return (
     <div className="container mx-auto px-4 py-6 space-y-6">
@@ -63,11 +116,21 @@ const Analytics = () => {
           </p>
         </div>
         <div className="flex items-center space-x-2">
-          <Button variant="outline" data-testid="date-filter-btn">
+          <Button 
+            variant="outline" 
+            data-testid="date-filter-btn"
+            onClick={handleDateFilter}
+            disabled={loading}
+          >
             <Calendar className="h-4 w-4 mr-2" />
-            Last 30 days
+            {getDateRangeLabel()}
           </Button>
-          <Button variant="outline" data-testid="export-btn">
+          <Button 
+            variant="outline" 
+            data-testid="export-btn"
+            onClick={handleExport}
+            disabled={loading || !analytics}
+          >
             <Download className="h-4 w-4 mr-2" />
             Export
           </Button>
