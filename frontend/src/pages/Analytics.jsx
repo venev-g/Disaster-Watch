@@ -61,7 +61,12 @@ const Analytics = () => {
     { month: 'Jun', incidents: 58, resolved: 55 },
   ];
 
-  const topLocations = [
+  // Use real location data or fallback
+  const topLocations = locations.length > 0 ? locations.map(loc => ({
+    city: loc.location_name,
+    incidents: loc.incident_count,
+    change: '+' + Math.floor(Math.random() * 20) + '%' // Mock change for now
+  })) : [
     { city: 'New York', incidents: 142, change: '+12%' },
     { city: 'Los Angeles', incidents: 98, change: '+8%' },
     { city: 'Chicago', incidents: 76, change: '-3%' },
