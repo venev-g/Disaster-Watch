@@ -2,8 +2,7 @@ import google.generativeai as genai
 import json
 import logging
 import time
-import re
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 from datetime import datetime, timezone
 
 logger = logging.getLogger(__name__)
@@ -13,8 +12,9 @@ class GeminiAnalysisAgent:
     
     def __init__(self, api_key: str):
         genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel('gemini-1.5-flash')
-        self.pro_model = genai.GenerativeModel('gemini-1.5-pro')
+        # Using latest available Gemini models
+        self.model = genai.GenerativeModel('gemini-2.5-flash')
+        self.pro_model = genai.GenerativeModel('gemini-2.5-pro')
         
         # Analysis prompt template
         self.analysis_prompt = """
@@ -63,51 +63,61 @@ Response format (valid JSON only):
 """
     
     async def analyze_content(self, content: str, source: str, timestamp: str, use_pro: bool = False) -> Dict[str, Any]:
-        """Analyze content using Gemini"""
+        """Analyze content using Gemini with JSON mode"""
         try:
             start_time = time.time()
             
             # Choose model based on complexity
             model = self.pro_model if use_pro else self.model
             
-            # Format prompt
-            prompt = self.analysis_prompt.format(
-                content=content,
-                timestamp=timestamp,
-                source=source
-            )
+            # Simplified prompt for JSON mode
+            prompt = f"""
+Analyze this emergency/disaster content and return ONLY valid JSON (no markdown, no explanations):
+
+CONTENT: {content}
+SOURCE: {source}
+TIME: {timestamp}
+
+Return a JSON object with these exact fields:
+{{
+  "relevance_score": <number 0.0-1.0>,
+  "urgency_score": <integer 1-10>,
+  "credibility_score": <number 0.0-1.0>,
+  "locations": [
+    {{"name": "<string>", "latitude": <number or null>, "longitude": <number or null>, "confidence": <number>}}
+  ],
+  "sentiment": {{
+    "distress_level": "<low|medium|high|critical>",
+    "emotions": ["<string>", ...],
+    "help_seeking": <true or false>
+  }},
+  "incident_type": "<flood|fire|earthquake|landslide|storm|other>",
+  "severity": "<low|moderate|severe|critical>",
+  "key_details": "<string>",
+  "affected_population": "<string>",
+  "immediate_actions": ["<string>", ...],
+  "reasoning": "<string>"
+}}
+
+Scoring guidelines:
+- relevance_score: How disaster/emergency related? (0.0-1.0)
+- urgency_score: Life-threatening=9-10, Major damage=7-8, General distress=4-6, Info=1-3
+- credibility_score: Source reliability (0.0-1.0)
+"""
             
-            # Generate response
-            response = model.generate_content(prompt)
+            # Generate response with JSON mode (no Pydantic schema)
+            response = model.generate_content(
+                prompt,
+                generation_config=genai.types.GenerationConfig(
+                    response_mime_type="application/json"
+                )
+            )
             
             if not response or not response.text:
                 raise Exception("Empty response from Gemini")
             
-            # Extract JSON from response
-            response_text = response.text.strip()
-            
-            # Remove markdown code blocks if present
-            response_text = re.sub(r'^```(?:json)?\s*', '', response_text, flags=re.MULTILINE)
-            response_text = re.sub(r'\s*```$', '', response_text, flags=re.MULTILINE)
-            
-            # Remove any leading text before the JSON - find first { and last }
-            start_idx = response_text.find('{')
-            end_idx = response_text.rfind('}')
-            
-            if start_idx == -1 or end_idx == -1:
-                logger.error(f"No JSON braces found in response: {response_text[:300]}")
-                raise Exception("No valid JSON found in response")
-            
-            json_text = response_text[start_idx:end_idx + 1].strip()
-            
-            # Try to parse JSON
-            try:
-                analysis = json.loads(json_text)
-            except json.JSONDecodeError as e:
-                # Log the problematic JSON for debugging
-                logger.error(f"JSON decode error at position {e.pos}: {e.msg}")
-                logger.error(f"Problematic JSON snippet: {json_text[max(0, e.pos-50):e.pos+50]}")
-                raise
+            # Parse JSON response (guaranteed valid JSON from JSON mode)
+            analysis = json.loads(response.text)
             
             # Validate and clean analysis
             analysis = self._validate_analysis(analysis)
@@ -116,7 +126,7 @@ Response format (valid JSON only):
             processing_time = int((time.time() - start_time) * 1000)
             analysis.update({
                 "processing_time_ms": processing_time,
-                "gemini_model": "gemini-1.5-pro" if use_pro else "gemini-1.5-flash",
+                "gemini_model": "gemini-2.5-pro" if use_pro else "gemini-2.5-flash",
                 "processed_at": datetime.now(timezone.utc)
             })
             
@@ -241,12 +251,19 @@ Response format:
 }}
 """
             
-            response = self.model.generate_content(prompt)
+            # Use JSON mode for alert generation too
+            response = self.model.generate_content(
+                prompt,
+                generation_config=genai.types.GenerationConfig(
+                    response_mime_type="application/json"
+                )
+            )
             
             if response and response.text:
-                json_match = re.search(r'{.*}', response.text, re.DOTALL)
-                if json_match:
-                    return json.loads(json_match.group())
+                try:
+                    return json.loads(response.text)
+                except json.JSONDecodeError:
+                    pass
             
             # Fallback alert generation
             return {
