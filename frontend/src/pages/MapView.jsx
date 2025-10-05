@@ -11,11 +11,8 @@ import {
   Maximize,
   Settings
 } from 'lucide-react';
-import { Map, Marker, Popup } from 'react-map-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
 import axios from 'axios';
 
-const MAPBOX_TOKEN = process.env.REACT_APP_MAPBOX_TOKEN;
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
