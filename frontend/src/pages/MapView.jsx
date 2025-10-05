@@ -11,7 +11,7 @@ import {
   Maximize,
   Settings
 } from 'lucide-react';
-import Map, { Marker, Popup } from 'react-map-gl';
+import { Map, Marker, Popup } from 'react-map-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import axios from 'axios';
 
