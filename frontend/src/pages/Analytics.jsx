@@ -128,8 +128,10 @@ const Analytics = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Response Time</p>
-                <p className="text-2xl font-bold" data-testid="avg-response-time">4.2min</p>
+                <p className="text-sm text-muted-foreground">Avg Urgency</p>
+                <p className="text-2xl font-bold" data-testid="avg-urgency">
+                  {loading ? '...' : (analytics?.avg_urgency_score?.toFixed(1) || '0.0')}
+                </p>
               </div>
               <TrendingDown className="h-8 w-8 text-green-500" />
             </div>
