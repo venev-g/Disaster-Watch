@@ -213,7 +213,7 @@ async def create_alert(
     try:
         # Create alert document
         alert_dict = alert_data.dict()
-        alert_dict["_id"] = f"alert_{int(datetime.now().timestamp())}"
+        alert_dict["id"] = f"alert_{int(datetime.now().timestamp())}"
         alert_dict["created_at"] = datetime.now(timezone.utc)
         alert_dict["status"] = "draft"
         
