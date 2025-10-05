@@ -352,7 +352,7 @@ async def send_alert(alert_id: str):
         
         # Mark as sent
         await db.alerts.update_one(
-            {"_id": alert_id},
+            {"id": alert_id},
             {
                 "$set": {
                     "status": "sent",
