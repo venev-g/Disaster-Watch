@@ -83,7 +83,7 @@ class Incident(IncidentCreate):
     gemini_model: Optional[str] = None
 
 class IncidentResponse(BaseModel):
-    id: str
+    id: str = Field(alias='_id')
     content: str
     source: str
     published_at: datetime
@@ -108,7 +108,7 @@ class IncidentResponse(BaseModel):
     alert_generated: bool
     
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
 # Alert models
 class AlertCreate(BaseModel):
@@ -129,7 +129,7 @@ class Alert(AlertCreate):
     engagement_rate: Optional[float] = None
 
 class AlertResponse(BaseModel):
-    id: str
+    id: str = Field(alias='_id')
     title: str
     message: str
     severity: str
@@ -142,7 +142,7 @@ class AlertResponse(BaseModel):
     incident_id: Optional[str]
     
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
 
 # Analytics models
 class AnalyticsSummary(BaseModel):

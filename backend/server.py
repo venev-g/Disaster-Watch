@@ -4,6 +4,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timezone
+from contextlib import asynccontextmanager
 import os
 import logging
 import json
@@ -40,11 +41,29 @@ gemini_agent = GeminiAnalysisAgent(GEMINI_API_KEY)
 # Initialize RSS Monitor
 rss_monitor = RSSMonitor(db, gemini_agent)
 
-# Create FastAPI app
+# Lifespan context manager for startup/shutdown events
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Manage application lifespan"""
+    # Startup
+    logger.info("Starting DisasterWatch API...")
+    monitoring_task = asyncio.create_task(rss_monitor.start_monitoring())
+    logger.info("RSS monitoring started")
+    
+    yield
+    
+    # Shutdown
+    monitoring_task.cancel()
+    await rss_monitor.stop_monitoring()
+    client.close()
+    logger.info("DisasterWatch API shutdown complete")
+
+# Create FastAPI app with lifespan
 app = FastAPI(
     title="DisasterWatch API",
     description="Intelligent Tweet Analyzer for Disaster Management",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan
 )
 
 # Create API router
@@ -66,26 +85,19 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Global variables for monitoring
-monitoring_task = None
-
-@app.on_event("startup")
-async def startup_event():
-    """Start background tasks on app startup"""
-    global monitoring_task
+# Lifespan context manager for startup/shutdown events
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Manage application lifespan"""
+    # Startup
     logger.info("Starting DisasterWatch API...")
-    
-    # Start RSS monitoring in background
     monitoring_task = asyncio.create_task(rss_monitor.start_monitoring())
     logger.info("RSS monitoring started")
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Clean up on app shutdown"""
-    global monitoring_task
-    if monitoring_task:
-        monitoring_task.cancel()
     
+    yield
+    
+    # Shutdown
+    monitoring_task.cancel()
     await rss_monitor.stop_monitoring()
     client.close()
     logger.info("DisasterWatch API shutdown complete")
@@ -127,6 +139,11 @@ async def get_incidents(
             .limit(limit)\
             .to_list(length=None)
         
+        # Convert MongoDB ObjectId to string
+        for incident in incidents:
+            if '_id' in incident:
+                incident['_id'] = str(incident['_id'])
+        
         return [IncidentResponse(**incident) for incident in incidents]
     
     except Exception as e:
@@ -140,6 +157,10 @@ async def get_incident(incident_id: str):
         incident = await db.incidents.find_one({"id": incident_id})
         if not incident:
             raise HTTPException(status_code=404, detail="Incident not found")
+        
+        # Convert MongoDB ObjectId to string
+        if '_id' in incident:
+            incident['_id'] = str(incident['_id'])
         
         return IncidentResponse(**incident)
     
@@ -197,6 +218,11 @@ async def get_alerts(limit: int = 20, offset: int = 0):
             .skip(offset)\
             .limit(limit)\
             .to_list(length=None)
+        
+        # Convert MongoDB ObjectId to string
+        for alert in alerts:
+            if '_id' in alert:
+                alert['_id'] = str(alert['_id'])
         
         return [AlertResponse(**alert) for alert in alerts]
     
@@ -320,7 +346,7 @@ async def get_top_locations(limit: int = 10):
 async def get_monitoring_status():
     """Get RSS monitoring status"""
     return {
-        "status": "active" if monitoring_task and not monitoring_task.done() else "inactive",
+        "status": "active" if rss_monitor.is_running else "inactive",
         "feeds_count": len(rss_monitor.rss_feeds),
         "last_check": rss_monitor.last_check_time.isoformat() if rss_monitor.last_check_time else None,
         "total_processed": getattr(rss_monitor, 'total_processed', 0)

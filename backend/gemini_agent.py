@@ -84,12 +84,30 @@ Response format (valid JSON only):
                 raise Exception("Empty response from Gemini")
             
             # Extract JSON from response
-            json_match = re.search(r'{.*}', response.text, re.DOTALL)
-            if not json_match:
+            response_text = response.text.strip()
+            
+            # Remove markdown code blocks if present
+            response_text = re.sub(r'^```(?:json)?\s*', '', response_text, flags=re.MULTILINE)
+            response_text = re.sub(r'\s*```$', '', response_text, flags=re.MULTILINE)
+            
+            # Remove any leading text before the JSON - find first { and last }
+            start_idx = response_text.find('{')
+            end_idx = response_text.rfind('}')
+            
+            if start_idx == -1 or end_idx == -1:
+                logger.error(f"No JSON braces found in response: {response_text[:300]}")
                 raise Exception("No valid JSON found in response")
             
-            # Parse JSON
-            analysis = json.loads(json_match.group())
+            json_text = response_text[start_idx:end_idx + 1].strip()
+            
+            # Try to parse JSON
+            try:
+                analysis = json.loads(json_text)
+            except json.JSONDecodeError as e:
+                # Log the problematic JSON for debugging
+                logger.error(f"JSON decode error at position {e.pos}: {e.msg}")
+                logger.error(f"Problematic JSON snippet: {json_text[max(0, e.pos-50):e.pos+50]}")
+                raise
             
             # Validate and clean analysis
             analysis = self._validate_analysis(analysis)
