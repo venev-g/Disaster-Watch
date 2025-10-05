@@ -258,8 +258,8 @@ class RSSMonitor:
             
             # Create alert document
             alert_data = {
-                "_id": f"alert_{int(time.time())}_{random.randint(1000, 9999)}",
-                "incident_id": incident_data['_id'],
+                "id": f"alert_{int(time.time())}_{random.randint(1000, 9999)}",
+                "incident_id": incident_data['id'],
                 "title": f"{incident_data['severity'].title()} {incident_data['incident_type'].title()} Alert",
                 "message": alert_messages.get('public_message', 'Emergency situation detected'),
                 "severity": incident_data['severity'],
