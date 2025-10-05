@@ -285,7 +285,7 @@ class RSSMonitor:
                 }
             )
             
-            logger.info(f"Alert generated for incident: {incident_data['_id']}")
+            logger.info(f"Alert generated for incident: {incident_data['id']}")
             
         except Exception as e:
             logger.error(f"Failed to generate alert: {e}")
