@@ -169,7 +169,7 @@ async def get_incidents_for_map():
                             "coordinates": [location["longitude"], location["latitude"]]
                         },
                         "properties": {
-                            "incident_id": incident["_id"],
+                            "incident_id": incident["id"],
                             "severity": incident.get("severity"),
                             "incident_type": incident.get("incident_type"),
                             "urgency_score": incident.get("urgency_score"),
