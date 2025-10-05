@@ -222,7 +222,7 @@ async def create_alert(
         
         # If auto_send is True, schedule sending
         if alert_data.auto_send:
-            background_tasks.add_task(send_alert, alert_dict["_id"])
+            background_tasks.add_task(send_alert, alert_dict["id"])
         
         return AlertResponse(**alert_dict)
     
