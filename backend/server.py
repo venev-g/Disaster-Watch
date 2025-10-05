@@ -338,7 +338,7 @@ async def send_alert(alert_id: str):
     try:
         # Update alert status
         await db.alerts.update_one(
-            {"_id": alert_id},
+            {"id": alert_id},
             {
                 "$set": {
                     "status": "sending",
