@@ -147,7 +147,9 @@ const Analytics = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Resolution Rate</p>
-                <p className="text-2xl font-bold" data-testid="resolution-rate">94.5%</p>
+                <p className="text-2xl font-bold" data-testid="resolution-rate">
+                  {loading ? '...' : (analytics?.resolution_rate?.toFixed(1) + '%' || '0%')}
+                </p>
               </div>
               <TrendingUp className="h-8 w-8 text-green-500" />
             </div>
