@@ -252,19 +252,19 @@ const MapView = () => {
             <div className="flex items-center space-x-6 text-sm">
               <div className="flex items-center space-x-2">
                 <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                <span>Critical (17)</span>
+                <span>Critical ({incidents.filter(i => i.severity === 'critical').length})</span>
               </div>
               <div className="flex items-center space-x-2">
                 <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-                <span>Severe (13)</span>
+                <span>Severe ({incidents.filter(i => i.severity === 'severe').length})</span>
               </div>
               <div className="flex items-center space-x-2">
                 <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                <span>Moderate (28)</span>
+                <span>Moderate ({incidents.filter(i => i.severity === 'moderate').length})</span>
               </div>
             </div>
             <div className="text-sm text-muted-foreground">
-              Last updated: 2 minutes ago
+              {validIncidents.length} incidents mapped • Last updated: {new Date().toLocaleTimeString()}
             </div>
           </div>
         </div>
