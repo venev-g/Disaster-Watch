@@ -141,124 +141,142 @@ const MapView = () => {
           </div>
         </div>
 
-        {/* Full Screen Real Map */}
-        <div className="h-[70vh] relative">
-          {MAPBOX_TOKEN ? (
-            <Map
-              {...viewState}
-              onMove={evt => setViewState(evt.viewState)}
-              style={{ width: '100%', height: '100%' }}
-              mapStyle={mapStyle}
-              mapboxAccessToken={MAPBOX_TOKEN}
-            >
-              {/* Incident Markers */}
-              {validIncidents.map((incident) => {
-                const location = incident.locations[0];
-                return (
-                  <Marker
-                    key={incident.id}
-                    longitude={location.longitude}
-                    latitude={location.latitude}
-                    anchor="bottom"
-                  >
-                    <div
-                      className="cursor-pointer transform hover:scale-125 transition-transform"
-                      onClick={() => setSelectedIncident(incident)}
-                      data-testid={`map-marker-${incident.id}`}
-                    >
-                      {/* Main Marker */}
-                      <div 
-                        className="w-8 h-8 rounded-full border-3 border-white shadow-xl flex items-center justify-center relative"
-                        style={{ backgroundColor: getSeverityColor(incident.severity) }}
-                      >
-                        <div className="w-3 h-3 bg-white rounded-full"></div>
-                        
-                        {/* Urgency Ring */}
-                        <div 
-                          className="absolute inset-0 rounded-full border-2"
-                          style={{ 
-                            borderColor: getSeverityColor(incident.severity),
-                            animation: incident.urgency_score >= 8 ? 'ping 1s cubic-bezier(0, 0, 0.2, 1) infinite' : 'none'
-                          }}
-                        ></div>
-                      </div>
-                      
-                      {/* Pulse for high urgency */}
-                      {incident.urgency_score >= 7 && (
-                        <div 
-                          className="absolute top-1/2 left-1/2 w-16 h-16 rounded-full transform -translate-x-1/2 -translate-y-1/2 opacity-30 animate-ping"
-                          style={{ backgroundColor: getSeverityColor(incident.severity) }}
-                        ></div>
-                      )}
-                    </div>
-                  </Marker>
-                );
-              })}
-
-              {/* Incident Popup */}
-              {selectedIncident && (
-                <Popup
-                  longitude={selectedIncident.locations[0].longitude}
-                  latitude={selectedIncident.locations[0].latitude}
-                  anchor="top"
-                  onClose={() => setSelectedIncident(null)}
-                  closeOnClick={false}
-                  className="max-w-sm"
-                >
-                  <div className="p-4 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <Badge variant={
-                        selectedIncident.severity === 'critical' ? 'destructive' : 
-                        selectedIncident.severity === 'severe' ? 'default' : 'secondary'
-                      }>
-                        {selectedIncident.severity.toUpperCase()}
-                      </Badge>
-                      <div className="text-xs text-gray-500">
-                        <span className="capitalize">{selectedIncident.incident_type}</span> • 
-                        <span className="ml-1">Urgency: {selectedIncident.urgency_score}/10</span>
-                      </div>
-                    </div>
-                    
-                    <h3 className="font-bold text-base">
-                      {selectedIncident.locations[0].name}
-                    </h3>
-                    
-                    <p className="text-sm text-gray-700 leading-relaxed">
-                      {selectedIncident.content}
-                    </p>
-                    
-                    <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t">
-                      <span className="font-medium">{selectedIncident.source}</span>
-                      <span>{new Date(selectedIncident.published_at).toLocaleDateString()}</span>
-                    </div>
-
-                    {selectedIncident.sentiment && (
-                      <div className="text-xs">
-                        <span className="text-gray-500">Distress Level: </span>
-                        <span className={`font-medium ${
-                          selectedIncident.sentiment.distress_level === 'critical' ? 'text-red-600' :
-                          selectedIncident.sentiment.distress_level === 'high' ? 'text-orange-600' :
-                          selectedIncident.sentiment.distress_level === 'medium' ? 'text-yellow-600' :
-                          'text-green-600'
-                        }`}>
-                          {selectedIncident.sentiment.distress_level}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </Popup>
-              )}
-            </Map>
-          ) : (
-            <div className="h-full flex items-center justify-center bg-gray-100 text-gray-500">
-              <div className="text-center">
-                <MapPin className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                <h3 className="text-lg font-medium mb-2">Map Unavailable</h3>
-                <p className="text-sm">Mapbox access token required</p>
-                <p className="text-xs mt-1">Please configure REACT_APP_MAPBOX_TOKEN</p>
+        {/* Full Screen Real World Map */}
+        <div className="h-[70vh] relative overflow-hidden">
+          <div className={`h-full w-full relative transition-colors duration-500 ${
+            mapStyle === 'satellite' ? 'bg-gradient-to-br from-green-100 via-blue-50 to-blue-200' :
+            mapStyle === 'streets' ? 'bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200' :
+            'bg-gradient-to-br from-amber-50 via-green-50 to-blue-50'
+          } dark:from-gray-800 dark:via-gray-700 dark:to-gray-600`}>
+            
+            {/* World Geographic Features */}
+            <div className="absolute inset-0">
+              {/* Continental Outlines */}
+              <div className="absolute top-[15%] left-[8%] w-[25%] h-[35%] bg-green-300 dark:bg-green-800 opacity-60 rounded-xl transform rotate-12"></div>
+              <div className="absolute top-[12%] left-[35%] w-[40%] h-[45%] bg-green-300 dark:bg-green-800 opacity-60 rounded-2xl transform -rotate-2"></div>
+              <div className="absolute top-[20%] left-[75%] w-[20%] h-[30%] bg-green-300 dark:bg-green-800 opacity-60 rounded-lg transform rotate-6"></div>
+              <div className="absolute top-[55%] left-[12%] w-[30%] h-[25%] bg-green-300 dark:bg-green-800 opacity-60 rounded-xl transform -rotate-3"></div>
+              <div className="absolute top-[50%] left-[78%] w-[18%] h-[40%] bg-green-300 dark:bg-green-800 opacity-60 rounded-2xl transform rotate-12"></div>
+              
+              {/* Ocean Bodies */}
+              <div className="absolute top-[25%] left-[30%] w-[8%] h-[15%] bg-blue-400 dark:bg-blue-700 opacity-70 rounded-full"></div>
+              <div className="absolute bottom-[15%] right-[25%] w-[12%] h-[8%] bg-blue-400 dark:bg-blue-700 opacity-70 rounded-full"></div>
+              
+              {/* Grid Lines (Longitude/Latitude) */}
+              <div className="absolute inset-0 opacity-20">
+                <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <pattern id="world-grid" width="50" height="50" patternUnits="userSpaceOnUse">
+                      <path d="M 50 0 L 0 0 0 50" fill="none" stroke="currentColor" strokeWidth="0.5"/>
+                    </pattern>
+                  </defs>
+                  <rect width="100%" height="100%" fill="url(#world-grid)" />
+                </svg>
               </div>
             </div>
-          )}
+
+            {/* Loading State */}
+            {loading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/10">
+                <div className="bg-white/90 dark:bg-black/90 p-4 rounded-lg">
+                  <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full mx-auto mb-2"></div>
+                  <p className="text-sm">Loading incidents...</p>
+                </div>
+              </div>
+            )}
+
+            {/* Real Incident Markers */}
+            {validIncidents.map((incident) => {
+              const position = generatePosition(incident);
+              
+              return (
+                <div
+                  key={incident.id}
+                  className="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer group transition-transform hover:scale-125"
+                  style={position}
+                  data-testid={`map-marker-${incident.id}`}
+                  onClick={() => setSelectedIncident(selectedIncident === incident ? null : incident)}
+                >
+                  {/* Main Marker */}
+                  <div className={`w-6 h-6 ${getSeverityColor(incident.severity)} rounded-full border-2 border-white shadow-xl flex items-center justify-center relative z-10`}>
+                    <div className="w-2 h-2 bg-white rounded-full"></div>
+                    
+                    {/* Urgency Indicator */}
+                    {incident.urgency_score >= 8 && (
+                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-600 border border-white rounded-full animate-pulse"></div>
+                    )}
+                  </div>
+                  
+                  {/* Pulse Animation for High Urgency */}
+                  {incident.urgency_score >= 7 && (
+                    <div className={`absolute top-1/2 left-1/2 w-12 h-12 ${getSeverityColor(incident.severity)} rounded-full transform -translate-x-1/2 -translate-y-1/2 opacity-40 animate-ping`}></div>
+                  )}
+                  
+                  {/* Hover Tooltip */}
+                  <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 bg-black/95 text-white text-xs px-3 py-2 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-20 pointer-events-none min-w-[200px]">
+                    <div className="font-bold text-center">{incident.locations[0]?.name || 'Unknown Location'}</div>
+                    <div className="text-center capitalize mt-1">{incident.incident_type} • {incident.severity}</div>
+                    <div className="text-center mt-1">Urgency: {incident.urgency_score}/10</div>
+                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-l-4 border-r-4 border-t-4 border-transparent border-t-black/95"></div>
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Selected Incident Details Panel */}
+            {selectedIncident && (
+              <div className="absolute top-4 right-4 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-xl max-w-sm z-30 border animate-slide-in">
+                <div className="flex items-center justify-between mb-3">
+                  <Badge variant={selectedIncident.severity === 'critical' ? 'destructive' : selectedIncident.severity === 'severe' ? 'default' : 'secondary'}>
+                    {selectedIncident.severity.toUpperCase()}
+                  </Badge>
+                  <button 
+                    onClick={() => setSelectedIncident(null)}
+                    className="text-gray-500 hover:text-gray-700 text-xl leading-none font-bold"
+                  >×</button>
+                </div>
+                
+                <h3 className="font-bold text-base mb-2">
+                  {selectedIncident.locations[0]?.name || 'Unknown Location'}
+                </h3>
+                
+                <p className="text-sm text-gray-600 dark:text-gray-300 mb-3 leading-relaxed">
+                  {selectedIncident.content}
+                </p>
+                
+                <div className="space-y-2 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-500">Type:</span>
+                    <span className="capitalize font-medium">{selectedIncident.incident_type}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-500">Urgency:</span>
+                    <span className="font-medium">{selectedIncident.urgency_score}/10</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-500">Source:</span>
+                    <span className="font-medium">{selectedIncident.source}</span>
+                  </div>
+                  <div className="flex items-center justify-between border-t pt-2">
+                    <span className="text-gray-500">Published:</span>
+                    <span className="font-medium">{new Date(selectedIncident.published_at).toLocaleDateString()}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* No Incidents State */}
+            {!loading && incidents.length === 0 && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="text-center text-gray-500 dark:text-gray-400">
+                  <MapPin className="h-16 w-16 mx-auto mb-4 opacity-50" />
+                  <h3 className="text-lg font-medium mb-2">No Incidents Detected</h3>
+                  <p className="text-sm">Real-time incident data will appear here</p>
+                  <p className="text-xs mt-1">System monitoring active RSS feeds</p>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Map Footer */}
