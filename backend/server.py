@@ -368,7 +368,7 @@ async def send_alert(alert_id: str):
         logger.error(f"Failed to send alert {alert_id}: {e}")
         # Mark as failed
         await db.alerts.update_one(
-            {"_id": alert_id},
+            {"id": alert_id},
             {"$set": {"status": "failed"}}
         )
 
