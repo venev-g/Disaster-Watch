@@ -111,7 +111,9 @@ const Analytics = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Total Incidents</p>
-                <p className="text-2xl font-bold" data-testid="total-incidents">1,247</p>
+                <p className="text-2xl font-bold" data-testid="total-incidents">
+                  {loading ? '...' : (analytics?.total_incidents?.toLocaleString() || '0')}
+                </p>
               </div>
               <TrendingUp className="h-8 w-8 text-green-500" />
             </div>
