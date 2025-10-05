@@ -160,7 +160,7 @@ class RSSMonitor:
             
             # Create incident document
             incident_data = {
-                "_id": f"incident_{int(time.time())}_{random.randint(1000, 9999)}",
+                "id": f"incident_{int(time.time())}_{random.randint(1000, 9999)}",
                 "content_id": content_id,
                 "content": content,
                 "source": feed_config['name'],
