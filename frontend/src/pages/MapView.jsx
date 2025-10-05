@@ -20,8 +20,50 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 const MapView = () => {
-  const [mapMode, setMapMode] = useState('satellite');
+  const [mapStyle, setMapStyle] = useState('mapbox://styles/mapbox/satellite-v9');
   const [showFilters, setShowFilters] = useState(false);
+  const [incidents, setIncidents] = useState([]);
+  const [selectedIncident, setSelectedIncident] = useState(null);
+  const [viewState, setViewState] = useState({
+    longitude: -98.5795,
+    latitude: 39.8282,
+    zoom: 4
+  });
+
+  useEffect(() => {
+    const fetchIncidents = async () => {
+      try {
+        const response = await axios.get(`${API}/incidents?limit=100`);
+        setIncidents(response.data);
+      } catch (err) {
+        console.error('Error fetching incidents:', err);
+      }
+    };
+
+    fetchIncidents();
+  }, []);
+
+  const getSeverityColor = (severity) => {
+    switch (severity) {
+      case 'critical': return '#ef4444';
+      case 'severe': return '#f97316';
+      case 'moderate': return '#eab308';
+      default: return '#3b82f6';
+    }
+  };
+
+  const mapStyles = [
+    { value: 'mapbox://styles/mapbox/satellite-v9', label: 'Satellite' },
+    { value: 'mapbox://styles/mapbox/streets-v11', label: 'Streets' },
+    { value: 'mapbox://styles/mapbox/dark-v10', label: 'Dark' }
+  ];
+
+  const validIncidents = incidents.filter(incident => 
+    incident.locations && 
+    incident.locations.length > 0 && 
+    incident.locations[0].latitude && 
+    incident.locations[0].longitude
+  );
 
   return (
     <div className="container mx-auto px-4 py-6 space-y-6">
