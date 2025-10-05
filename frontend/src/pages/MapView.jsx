@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,6 +11,13 @@ import {
   Maximize,
   Settings
 } from 'lucide-react';
+import Map, { Marker, Popup } from 'react-map-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
+import axios from 'axios';
+
+const MAPBOX_TOKEN = process.env.REACT_APP_MAPBOX_TOKEN;
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const API = `${BACKEND_URL}/api`;
 
 const MapView = () => {
   const [mapMode, setMapMode] = useState('satellite');
