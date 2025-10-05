@@ -17,42 +17,45 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 const MapView = () => {
-  const [mapStyle, setMapStyle] = useState('mapbox://styles/mapbox/satellite-v9');
+  const [mapStyle, setMapStyle] = useState('satellite');
   const [showFilters, setShowFilters] = useState(false);
   const [incidents, setIncidents] = useState([]);
   const [selectedIncident, setSelectedIncident] = useState(null);
-  const [viewState, setViewState] = useState({
-    longitude: -98.5795,
-    latitude: 39.8282,
-    zoom: 4
-  });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchIncidents = async () => {
       try {
+        setLoading(true);
         const response = await axios.get(`${API}/incidents?limit=100`);
         setIncidents(response.data);
       } catch (err) {
         console.error('Error fetching incidents:', err);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchIncidents();
+    
+    // Auto refresh every 30 seconds
+    const interval = setInterval(fetchIncidents, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   const getSeverityColor = (severity) => {
     switch (severity) {
-      case 'critical': return '#ef4444';
-      case 'severe': return '#f97316';
-      case 'moderate': return '#eab308';
-      default: return '#3b82f6';
+      case 'critical': return 'bg-red-500';
+      case 'severe': return 'bg-orange-500';
+      case 'moderate': return 'bg-yellow-500';
+      default: return 'bg-blue-500';
     }
   };
 
   const mapStyles = [
-    { value: 'mapbox://styles/mapbox/satellite-v9', label: 'Satellite' },
-    { value: 'mapbox://styles/mapbox/streets-v11', label: 'Streets' },
-    { value: 'mapbox://styles/mapbox/dark-v10', label: 'Dark' }
+    { value: 'satellite', label: 'Satellite' },
+    { value: 'streets', label: 'Streets' },
+    { value: 'terrain', label: 'Terrain' }
   ];
 
   const validIncidents = incidents.filter(incident => 
@@ -61,6 +64,21 @@ const MapView = () => {
     incident.locations[0].latitude && 
     incident.locations[0].longitude
   );
+
+  // Generate realistic positions based on coordinates
+  const generatePosition = (incident) => {
+    if (incident.locations && incident.locations[0]) {
+      const lat = incident.locations[0].latitude;
+      const lng = incident.locations[0].longitude;
+      
+      // Convert world coordinates to map percentage positions
+      const x = Math.min(Math.max(((lng + 180) / 360) * 100, 2), 98);
+      const y = Math.min(Math.max(((90 - lat) / 180) * 100, 2), 98);
+      
+      return { left: `${x}%`, top: `${y}%` };
+    }
+    return { left: '50%', top: '50%' };
+  };
 
   return (
     <div className="container mx-auto px-4 py-6 space-y-6">
