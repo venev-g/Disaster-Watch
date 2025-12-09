@@ -16,31 +16,49 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 const MapView = () => {
-  const [mapStyle, setMapStyle] = useState('satellite');
   const [showFilters, setShowFilters] = useState(false);
   const [incidents, setIncidents] = useState([]);
-  const [selectedIncident, setSelectedIncident] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [selectedBounds, setSelectedBounds] = useState(null);
+  const [severityFilter, setSeverityFilter] = useState(null);
+  const [typeFilter, setTypeFilter] = useState(null);
+
+  const fetchIncidents = async (bounds = null, severity = null, type = null) => {
+    try {
+      setLoading(true);
+      let url;
+      
+      if (bounds) {
+        // Fetch incidents within bounds
+        url = `${API}/incidents/by-bounds?north=${bounds.north}&south=${bounds.south}&east=${bounds.east}&west=${bounds.west}`;
+        if (severity) url += `&severity=${severity}`;
+        if (type) url += `&incident_type=${type}`;
+      } else {
+        // Fetch all incidents
+        url = `${API}/incidents?limit=200`;
+        if (severity) url += `&severity=${severity}`;
+        if (type) url += `&incident_type=${type}`;
+      }
+      
+      const response = await axios.get(url);
+      setIncidents(response.data);
+    } catch (err) {
+      console.error('Error fetching incidents:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchIncidents = async () => {
-      try {
-        setLoading(true);
-        const response = await axios.get(`${API}/incidents?limit=100`);
-        setIncidents(response.data);
-      } catch (err) {
-        console.error('Error fetching incidents:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchIncidents();
+    fetchIncidents(selectedBounds, severityFilter, typeFilter);
     
     // Auto refresh every 30 seconds
-    const interval = setInterval(fetchIncidents, 30000);
+    const interval = setInterval(() => {
+      fetchIncidents(selectedBounds, severityFilter, typeFilter);
+    }, 30000);
+    
     return () => clearInterval(interval);
-  }, []);
+  }, [selectedBounds, severityFilter, typeFilter]);
 
   const getSeverityColor = (severity) => {
     switch (severity) {
