@@ -150,26 +150,6 @@ async def get_incidents(
         logger.error(f"Error fetching incidents: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch incidents")
 
-@api_router.get("/incidents/{incident_id}", response_model=IncidentResponse)
-async def get_incident(incident_id: str):
-    """Get specific incident by ID"""
-    try:
-        incident = await db.incidents.find_one({"id": incident_id})
-        if not incident:
-            raise HTTPException(status_code=404, detail="Incident not found")
-        
-        # Convert MongoDB ObjectId to string
-        if '_id' in incident:
-            incident['_id'] = str(incident['_id'])
-        
-        return IncidentResponse(**incident)
-    
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error fetching incident {incident_id}: {e}")
-        raise HTTPException(status_code=500, detail="Failed to fetch incident")
-
 @api_router.get("/incidents/map")
 async def get_incidents_for_map(
     severity: Optional[str] = None,
@@ -295,6 +275,26 @@ async def get_incidents_by_bounds(
     except Exception as e:
         logger.error(f"Error fetching incidents by bounds: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch incidents by bounds")
+
+@api_router.get("/incidents/{incident_id}", response_model=IncidentResponse)
+async def get_incident(incident_id: str):
+    """Get specific incident by ID"""
+    try:
+        incident = await db.incidents.find_one({"id": incident_id})
+        if not incident:
+            raise HTTPException(status_code=404, detail="Incident not found")
+        
+        # Convert MongoDB ObjectId to string
+        if '_id' in incident:
+            incident['_id'] = str(incident['_id'])
+        
+        return IncidentResponse(**incident)
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching incident {incident_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch incident")
 
 # Alert endpoints
 @api_router.get("/alerts", response_model=List[AlertResponse])
