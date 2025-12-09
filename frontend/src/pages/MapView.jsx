@@ -81,12 +81,27 @@ const MapView = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Interactive Map</h1>
+          <h1 className="text-3xl font-bold tracking-tight">OpenStreetMap - Interactive View</h1>
           <p className="text-muted-foreground">
-            Visualize incidents across geographic regions
+            Visualize and filter disaster incidents by location
           </p>
+          {selectedBounds && (
+            <Badge variant="secondary" className="mt-2">
+              <MapPin className="h-3 w-3 mr-1" />
+              Area filter active
+            </Badge>
+          )}
         </div>
         <div className="flex items-center space-x-2">
+          <Button 
+            variant="outline" 
+            onClick={() => fetchIncidents(selectedBounds, severityFilter, typeFilter)}
+            disabled={loading}
+            data-testid="refresh-btn"
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
           <Button 
             variant="outline" 
             onClick={() => setShowFilters(!showFilters)}
@@ -95,47 +110,11 @@ const MapView = () => {
             <Filter className="h-4 w-4 mr-2" />
             Filters
           </Button>
-          <Button variant="outline" data-testid="map-settings-btn">
-            <Settings className="h-4 w-4 mr-2" />
-            Settings
-          </Button>
         </div>
       </div>
 
       {/* Map Container */}
       <Card className="relative overflow-hidden" data-testid="full-map-container">
-        {/* Map Controls */}
-        <div className="absolute top-4 right-4 z-10 space-y-2">
-          <div className="bg-background/80 backdrop-blur-sm rounded-lg p-2 space-y-1">
-            <Button size="icon" variant="outline" className="w-8 h-8" data-testid="zoom-in-btn">
-              <ZoomIn className="h-4 w-4" />
-            </Button>
-            <Button size="icon" variant="outline" className="w-8 h-8" data-testid="zoom-out-btn">
-              <ZoomOut className="h-4 w-4" />
-            </Button>
-            <Button size="icon" variant="outline" className="w-8 h-8" data-testid="fullscreen-btn">
-              <Maximize className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-
-        {/* Map Mode Toggle */}
-        <div className="absolute top-4 left-4 z-10">
-          <div className="bg-background/80 backdrop-blur-sm rounded-lg p-1 flex space-x-1">
-            {mapStyles.map((style) => (
-              <Button
-                key={style.value}
-                size="sm"
-                variant={mapStyle === style.value ? 'default' : 'ghost'}
-                onClick={() => setMapStyle(style.value)}
-                className="text-xs"
-                data-testid={`map-mode-${style.label.toLowerCase()}`}
-              >
-                {style.label}
-              </Button>
-            ))}
-          </div>
-        </div>
 
         {/* Full Screen Real World Map */}
         <div className="h-[70vh] relative overflow-hidden">
