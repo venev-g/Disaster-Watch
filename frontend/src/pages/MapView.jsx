@@ -60,41 +60,20 @@ const MapView = () => {
     return () => clearInterval(interval);
   }, [selectedBounds, severityFilter, typeFilter]);
 
-  const getSeverityColor = (severity) => {
-    switch (severity) {
-      case 'critical': return 'bg-red-500';
-      case 'severe': return 'bg-orange-500';
-      case 'moderate': return 'bg-yellow-500';
-      default: return 'bg-blue-500';
-    }
+  const handleBoundsFilter = (bounds) => {
+    setSelectedBounds(bounds);
   };
 
-  const mapStyles = [
-    { value: 'satellite', label: 'Satellite' },
-    { value: 'streets', label: 'Streets' },
-    { value: 'terrain', label: 'Terrain' }
-  ];
+  const handleClearSelection = () => {
+    setSelectedBounds(null);
+  };
 
-  const validIncidents = incidents.filter(incident => 
-    incident.locations && 
-    incident.locations.length > 0 && 
-    incident.locations[0].latitude && 
-    incident.locations[0].longitude
-  );
+  const handleSeverityFilter = (severity) => {
+    setSeverityFilter(severity === severityFilter ? null : severity);
+  };
 
-  // Generate realistic positions based on coordinates
-  const generatePosition = (incident) => {
-    if (incident.locations && incident.locations[0]) {
-      const lat = incident.locations[0].latitude;
-      const lng = incident.locations[0].longitude;
-      
-      // Convert world coordinates to map percentage positions
-      const x = Math.min(Math.max(((lng + 180) / 360) * 100, 2), 98);
-      const y = Math.min(Math.max(((90 - lat) / 180) * 100, 2), 98);
-      
-      return { left: `${x}%`, top: `${y}%` };
-    }
-    return { left: '50%', top: '50%' };
+  const handleTypeFilter = (type) => {
+    setTypeFilter(type === typeFilter ? null : type);
   };
 
   return (
