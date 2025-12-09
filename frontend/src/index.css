@@ -84,3 +84,51 @@ code {
     @apply bg-background text-foreground;
     }
 }
+
+/* Custom styles for Leaflet markers */
+.custom-marker-icon {
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Leaflet popup styling */
+.leaflet-popup-content-wrapper {
+  border-radius: 0.5rem;
+  padding: 0;
+}
+
+.leaflet-popup-content {
+  margin: 0;
+  min-width: 250px;
+}
+
+/* Marker cluster styling */
+.marker-cluster-small,
+.marker-cluster-medium,
+.marker-cluster-large {
+  background-color: rgba(59, 130, 246, 0.6);
+}
+
+.marker-cluster-small div,
+.marker-cluster-medium div,
+.marker-cluster-large div {
+  background-color: rgba(59, 130, 246, 0.8);
+  color: white;
+  font-weight: bold;
+}
+
+/* Animation for slide-in */
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-in {
+  animation: slide-in 0.3s ease-out;
+}
