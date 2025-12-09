@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap, Rectangle } from 'react-leaflet';
-import MarkerClusterGroup from 'react-leaflet-markercluster';
+import { MapContainer, TileLayer, Marker, Popup, useMap, Rectangle, LayersControl } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Badge } from '@/components/ui/badge';
