@@ -225,15 +225,8 @@ const OpenStreetMap = ({ incidents, onBoundsFilter, selectedBounds, onClearSelec
           onClearSelection={onClearSelection}
         />
 
-        {/* Incident Markers with Clustering */}
-        <MarkerClusterGroup
-          chunkedLoading
-          maxClusterRadius={50}
-          spiderfyOnMaxZoom={true}
-          showCoverageOnHover={false}
-          zoomToBoundsOnClick={true}
-        >
-          {incidents.map((incident) => {
+        {/* Incident Markers */}
+        {incidents.map((incident) => {
             if (!incident.locations?.[0]?.latitude || !incident.locations?.[0]?.longitude) {
               return null;
             }
