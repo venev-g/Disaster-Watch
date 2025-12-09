@@ -284,7 +284,6 @@ const OpenStreetMap = ({ incidents, onBoundsFilter, selectedBounds, onClearSelec
               </Marker>
             );
           })}
-        </MarkerClusterGroup>
       </MapContainer>
 
       {/* No Data State */}
