@@ -6,12 +6,11 @@ import {
   Filter, 
   Layers, 
   MapPin, 
-  ZoomIn, 
-  ZoomOut,
-  Maximize,
-  Settings
+  Settings,
+  RefreshCw
 } from 'lucide-react';
 import axios from 'axios';
+import OpenStreetMap from '@/components/OpenStreetMap';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
