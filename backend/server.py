@@ -171,12 +171,21 @@ async def get_incident(incident_id: str):
         raise HTTPException(status_code=500, detail="Failed to fetch incident")
 
 @api_router.get("/incidents/map")
-async def get_incidents_for_map():
+async def get_incidents_for_map(
+    severity: Optional[str] = None,
+    incident_type: Optional[str] = None
+):
     """Get incidents formatted for map visualization"""
     try:
-        incidents = await db.incidents.find({
-            "locations": {"$exists": True, "$ne": []}
-        }).sort("published_at", -1).limit(100).to_list(length=None)
+        # Build query
+        query = {"locations": {"$exists": True, "$ne": []}}
+        if severity:
+            query["severity"] = severity
+        if incident_type:
+            query["incident_type"] = incident_type
+        
+        incidents = await db.incidents.find(query)\
+            .sort("published_at", -1).limit(100).to_list(length=None)
         
         # Format for GeoJSON
         features = []
@@ -194,8 +203,10 @@ async def get_incidents_for_map():
                             "severity": incident.get("severity"),
                             "incident_type": incident.get("incident_type"),
                             "urgency_score": incident.get("urgency_score"),
-                            "content": incident.get("content", "")[:100] + "...",
-                            "location_name": location.get("name")
+                            "content": incident.get("content", "")[:200],
+                            "location_name": location.get("name"),
+                            "published_at": incident.get("published_at").isoformat() if incident.get("published_at") else None,
+                            "source": incident.get("source")
                         }
                     })
         
@@ -207,6 +218,83 @@ async def get_incidents_for_map():
     except Exception as e:
         logger.error(f"Error fetching map incidents: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch map data")
+
+@api_router.get("/incidents/by-bounds")
+async def get_incidents_by_bounds(
+    north: float,
+    south: float,
+    east: float,
+    west: float,
+    severity: Optional[str] = None,
+    incident_type: Optional[str] = None,
+    limit: int = 200
+):
+    """Get incidents within specified map bounds"""
+    try:
+        # Build query for geographic bounds
+        query = {
+            "locations": {
+                "$elemMatch": {
+                    "latitude": {"$gte": south, "$lte": north},
+                    "longitude": {"$gte": west, "$lte": east}
+                }
+            }
+        }
+        
+        # Add optional filters
+        if severity:
+            query["severity"] = severity
+        if incident_type:
+            query["incident_type"] = incident_type
+        
+        incidents = await db.incidents.find(query)\
+            .sort("published_at", -1)\
+            .limit(limit)\
+            .to_list(length=None)
+        
+        # Format for GeoJSON
+        features = []
+        for incident in incidents:
+            for location in incident.get("locations", []):
+                lat = location.get("latitude")
+                lng = location.get("longitude")
+                
+                # Check if location is within bounds
+                if (lat and lng and 
+                    south <= lat <= north and 
+                    west <= lng <= east):
+                    features.append({
+                        "type": "Feature",
+                        "geometry": {
+                            "type": "Point",
+                            "coordinates": [lng, lat]
+                        },
+                        "properties": {
+                            "incident_id": incident["id"],
+                            "severity": incident.get("severity"),
+                            "incident_type": incident.get("incident_type"),
+                            "urgency_score": incident.get("urgency_score"),
+                            "content": incident.get("content", "")[:200],
+                            "location_name": location.get("name"),
+                            "published_at": incident.get("published_at").isoformat() if incident.get("published_at") else None,
+                            "source": incident.get("source")
+                        }
+                    })
+        
+        return {
+            "type": "FeatureCollection",
+            "features": features,
+            "bounds": {
+                "north": north,
+                "south": south,
+                "east": east,
+                "west": west
+            }
+        }
+    
+    except Exception as e:
+        logger.error(f"Error fetching incidents by bounds: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch incidents by bounds")
 
 # Alert endpoints
 @api_router.get("/alerts", response_model=List[AlertResponse])
