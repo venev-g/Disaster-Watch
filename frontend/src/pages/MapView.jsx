@@ -165,41 +165,84 @@ const MapView = () => {
       {showFilters && (
         <Card className="animate-slide-in" data-testid="filters-panel">
           <CardHeader>
-            <CardTitle>Map Filters</CardTitle>
+            <CardTitle className="flex items-center justify-between">
+              <span>Map Filters</span>
+              {(severityFilter || typeFilter) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setSeverityFilter(null);
+                    setTypeFilter(null);
+                  }}
+                >
+                  Clear All
+                </Button>
+              )}
+            </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6">
             <div>
-              <h4 className="font-medium mb-2">Incident Types</h4>
+              <h4 className="font-medium mb-3">Incident Types</h4>
               <div className="space-y-2">
-                {['Fire', 'Flood', 'Earthquake', 'Landslide'].map((type) => (
-                  <label key={type} className="flex items-center space-x-2 cursor-pointer">
-                    <input type="checkbox" className="rounded" defaultChecked />
-                    <span className="text-sm">{type}</span>
-                  </label>
+                {['fire', 'flood', 'earthquake', 'landslide', 'storm', 'other'].map((type) => (
+                  <Button
+                    key={type}
+                    variant={typeFilter === type ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => handleTypeFilter(type)}
+                    className="w-full justify-start capitalize"
+                  >
+                    {type}
+                  </Button>
                 ))}
               </div>
             </div>
             
             <div>
-              <h4 className="font-medium mb-2">Severity Levels</h4>
+              <h4 className="font-medium mb-3">Severity Levels</h4>
               <div className="space-y-2">
-                {['Critical', 'Severe', 'Moderate', 'Low'].map((severity) => (
-                  <label key={severity} className="flex items-center space-x-2 cursor-pointer">
-                    <input type="checkbox" className="rounded" defaultChecked />
-                    <span className="text-sm">{severity}</span>
-                  </label>
+                {[
+                  { value: 'critical', color: 'bg-red-500', label: 'Critical' },
+                  { value: 'severe', color: 'bg-orange-500', label: 'Severe' },
+                  { value: 'moderate', color: 'bg-yellow-500', label: 'Moderate' },
+                  { value: 'low', color: 'bg-blue-500', label: 'Low' }
+                ].map((severity) => (
+                  <Button
+                    key={severity.value}
+                    variant={severityFilter === severity.value ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => handleSeverityFilter(severity.value)}
+                    className="w-full justify-start"
+                  >
+                    <div className={`w-3 h-3 ${severity.color} rounded-full mr-2`}></div>
+                    {severity.label}
+                  </Button>
                 ))}
               </div>
             </div>
 
-            <div>
-              <h4 className="font-medium mb-2">Time Range</h4>
-              <select className="w-full p-2 border rounded text-sm">
-                <option>Last 24 hours</option>
-                <option>Last 7 days</option>
-                <option>Last 30 days</option>
-                <option>Custom range</option>
-              </select>
+            <div className="pt-4 border-t">
+              <h4 className="font-medium mb-2">Location Filter</h4>
+              <p className="text-xs text-muted-foreground mb-3">
+                Use the "Select Area" button on the map to filter incidents by geographic region
+              </p>
+              {selectedBounds && (
+                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-green-900 dark:text-green-100">
+                      Area Selected
+                    </span>
+                    <Badge variant="secondary">Active</Badge>
+                  </div>
+                  <div className="text-xs text-green-700 dark:text-green-300 space-y-1">
+                    <div>North: {selectedBounds.north.toFixed(4)}°</div>
+                    <div>South: {selectedBounds.south.toFixed(4)}°</div>
+                    <div>East: {selectedBounds.east.toFixed(4)}°</div>
+                    <div>West: {selectedBounds.west.toFixed(4)}°</div>
+                  </div>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
