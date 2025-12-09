@@ -3,7 +3,6 @@ import { MapContainer, TileLayer, Marker, Popup, useMap, Rectangle } from 'react
 import MarkerClusterGroup from 'react-leaflet-markercluster';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import 'react-leaflet-markercluster/dist/styles.min.css';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { X, MapPin } from 'lucide-react';
