@@ -24,28 +24,28 @@ class RSSMonitor:
         # Default RSS feeds for disaster monitoring
         self.rss_feeds = [
             {
-                "name": "Emergency Alert System",
-                "url": "https://feeds.bbci.co.uk/news/world/rss.xml",
+                "name": "Global Disaster Alert and Coordination System",
+                "url": "https://www.gdacs.org/xml/rss.xml",
                 "category": "news",
                 "check_interval_minutes": 5
             },
             {
-                "name": "Weather Emergency Updates", 
-                "url": "https://rss.cnn.com/rss/cnn_latest.rss",
+                "name": "USGS Earthquake Hazards Program", 
+                "url": "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_month.atom",
                 "category": "news",
                 "check_interval_minutes": 5
             },
             {
-                "name": "Reuters Disaster News",
-                "url": "https://www.reuters.com/rssfeed/worldNews",
+                "name": "ReliefWeb Headlines",
+                "url": "https://reliefweb.int/rss/headlines",
                 "category": "news", 
-                "check_interval_minutes": 10
+                "check_interval_minutes": 5
             },
             {
-                "name": "USGS Earthquake Alerts",
-                "url": "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_hour.atom",
+                "name": "NASA Earth Observatory - Natural Hazards",
+                "url": "https://earthobservatory.nasa.gov/feeds/natural-hazards.rss",
                 "category": "government",
-                "check_interval_minutes": 15
+                "check_interval_minutes": 5
             }
         ]
     
